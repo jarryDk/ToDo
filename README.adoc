@@ -41,7 +41,106 @@ curl -X GET \
 	-H 'Accept: application/json'
 ----
 
+== Docker work
 
+[source,bash]
+----
+docker network inspect demo-net
+----
+
+[source,bash]
+----
+docker network create demo-net
+----
+
+== Kubernetes work
+
+[source,bash]
+----
+kubectl get all
+----
+
+[source,bash]
+----
+kubectl delete deployment.apps/quarkus-todo
+----
+
+== Minikube work
+
+https://kubernetes.io/docs/setup/learning-environment/minikube/
+
+`We need to set the environment variables with`
+[source,bash]
+----
+eval $(minikube docker-env)
+----
+
+`We can unset the environment variables with this command`
+[source,bash]
+----
+eval $(minikube docker-env -u)
+----
+
+[source,bash]
+----
+minikube dashboard --url
+minikube service pgadmin --url
+minikube service postgresqldemo --url
+minikube service quarkus-todo-service --url
+----
+
+[source,bash]
+----
+minikube start \
+	-p micbn \
+	--cpus 2 \
+	--memory 2048 \
+	--disk-size 10g \
+	--vm-driver=kvm2
+----
+
+[source,bash]
+----
+minikube dashboard --url -p micbn 
+----
+
+[source,bash]
+----
+minikube stop -p micbn 
+----
+
+[source,bash]
+----
+minikube delete -p micbn
+----
+
+== Start ToDo
+
+[source,bash]
+----
+cd quarkus-todo
+docker build \
+	-f src/main/docker/Dockerfile.native \
+	-t quarkus-todo .
+----
+
+[source,bash]
+----
+docker run -i --rm \
+	--name quarkus-todo \
+	--network demo-net \
+	-p 8080:8080 quarkus-todo
+----
+
+[source,bash]
+----
+kubectl run quarkus-todo \
+	--port=8080 \
+	--image=quarkus-todo:latest \
+	--image-pull-policy=IfNotPresent
+
+kubectl expose deployment quarkus-todo --type=LoadBalancer	--name=quarkus-todo-service
+----
 
 == Start Postgres
 
@@ -56,6 +155,20 @@ docker run --ulimit memlock=-1:-1 \
 	-p 5432:5432 \
 	postgres:12.2
 ----
+
+[source,bash]
+----
+kubectl run postgresqldemo \
+	--image=postgres:12.2 \
+	--port=5432 \
+	--env=POSTGRES_USER=hibernate \
+	--env=POSTGRES_PASSWORD=hibernate \
+	--env=POSTGRES_DB=hibernate_db \
+	--image-pull-policy=IfNotPresent
+
+kubectl expose deployment postgresqldemo --type=NodePort
+----
+
 
 == Start Jaeger
 
