@@ -1,0 +1,24 @@
+= Webcomponents ToDo
+
+Start development
+
+[source,bash]
+----
+browser-sync start -f . -s
+----
+
+== browsersync
+
+[source,bash]
+----
+npm install -g browser-sync
+----
+
+https://browsersync.io/docs/command-line
+
+== Inspiration
+
+https://github.com/AdamBien/webcomponents.training
+
+https://github.com/AdamBien/webstandards.training
+
