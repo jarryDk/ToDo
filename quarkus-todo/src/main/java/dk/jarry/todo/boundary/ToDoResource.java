@@ -20,11 +20,15 @@ import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
 import dk.jarry.todo.entity.ToDo;
 
 @Path("todos")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "Todo Resource", description = "All Todo Operations")
 public class ToDoResource {
 	
 	@Inject
@@ -34,6 +38,7 @@ public class ToDoResource {
 	@RolesAllowed("user")
 	@Counted(name = "createPerformed", description = "How many create have been performed.")
 	@Timed(name = "createTimer", description = "A measure of how long it takes to perform the primality test.", unit = MetricUnits.MILLISECONDS)
+	@Operation(description = "Create a new todo")
 	public ToDo create(ToDo toDo) {
 		return toDoService.create(toDo);
 	}
@@ -41,13 +46,15 @@ public class ToDoResource {
 	@GET
 	@Path("{id}")
 	@PermitAll
+	@Operation(description = "Get a specific todo by id")
 	public ToDo read(@PathParam("id") Integer id) {
 		return toDoService.read(id);
 	}
 
 	@PUT
 	@Path("{id}")
-	@RolesAllowed("user")
+	@RolesAllowed("user")	
+	@Operation(description = "Update an exiting todo")
 	public ToDo update(@PathParam("id") Integer id, ToDo toDo) {
 		return toDoService.update(id, toDo);
 	}
@@ -55,12 +62,14 @@ public class ToDoResource {
 	@DELETE
 	@Path("{id}")
 	@PermitAll
+	@Operation(description = "Delete a specific todo")
 	public void delete(@PathParam("id") Integer id) {
 		toDoService.delete(id);
 	}
 
 	@GET
 	@PermitAll
+	@Operation(description = "Get all the todos")
 	public List<ToDo> list( //
 			@QueryParam("from") Long from, //
 			@QueryParam("limit") Long limit) {
