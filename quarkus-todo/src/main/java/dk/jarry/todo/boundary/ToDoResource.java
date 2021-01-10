@@ -47,7 +47,7 @@ public class ToDoResource {
 	@Path("{id}")
 	@PermitAll
 	@Operation(description = "Get a specific todo by id")
-	public ToDo read(@PathParam("id") Integer id) {
+	public ToDo read(@PathParam("id") Long id) {
 		return toDoService.read(id);
 	}
 
@@ -55,7 +55,7 @@ public class ToDoResource {
 	@Path("{id}")
 	@RolesAllowed("user")	
 	@Operation(description = "Update an exiting todo")
-	public ToDo update(@PathParam("id") Integer id, ToDo toDo) {
+	public ToDo update(@PathParam("id") Long id, ToDo toDo) {
 		return toDoService.update(id, toDo);
 	}
 
@@ -63,7 +63,7 @@ public class ToDoResource {
 	@Path("{id}")
 	@PermitAll
 	@Operation(description = "Delete a specific todo")
-	public void delete(@PathParam("id") Integer id) {
+	public void delete(@PathParam("id") Long id) {
 		toDoService.delete(id);
 	}
 

@@ -1,13 +1,12 @@
 = ToDo
+
 Michael Bornholdt Nielsen michaelbornholdtnielsen@gmail.com
 
-[source,bash]
-----
-curl -v http://localhost:8080/todos \
-	-H 'Accept: application/json' \
-	-H 'Content-Type: application/json' \
-	-d '{"subject":"Hello from Quarkus","body":"Content","priority": 1,"importens": 10,"owner" : "Duke"}'
-----
+== Requirements
+
+- Java 11
+- Graalvm 20.2.0
+- Postgres
 
 == MicroProfile
 
@@ -40,6 +39,12 @@ curl -X GET \
 	http://localhost:8080/openapi \
 	-H 'Accept: application/json'
 ----
+
+=== MicroProfile Opentracing
+
+You can then navigate to http://localhost:16686 to access the Jaeger UI.
+
+https://quarkus.io/guides/opentracing[quarkus.io - Using OpenTracing]
 
 == Docker work
 
@@ -119,6 +124,12 @@ minikube delete -p micbn
 [source,bash]
 ----
 cd quarkus-todo
+./mvnw package -Pnative
+----
+
+[source,bash]
+----
+cd quarkus-todo
 docker build \
 	-f src/main/docker/Dockerfile.native \
 	-t quarkus-todo .
@@ -149,11 +160,12 @@ kubectl expose deployment quarkus-todo --type=LoadBalancer	--name=quarkus-todo-s
 docker run --ulimit memlock=-1:-1 \
 	-it --rm=true --memory-swappiness=0 \
 	--name PostgreSQLDemo \
+	--network demo-net \
 	-e POSTGRES_USER=hibernate \
 	-e POSTGRES_PASSWORD=hibernate \
 	-e POSTGRES_DB=hibernate_db \
 	-p 5432:5432 \
-	postgres:12.2
+	postgres:13.1
 ----
 
 [source,bash]
@@ -174,17 +186,14 @@ kubectl expose deployment postgresqldemo --type=NodePort
 
 [source,bash]
 ----
-docker run -d --name jaeger \
-  -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 \
+docker run  -it --rm=true \
   -p 5775:5775/udp \
   -p 6831:6831/udp \
   -p 6832:6832/udp \
   -p 5778:5778 \
   -p 16686:16686 \
   -p 14268:14268 \
-  -p 14250:14250 \
-  -p 9411:9411 \
-  jaegertracing/all-in-one:1.17
+  jaegertracing/all-in-one:1.21
 ----
 
 You can then navigate to http://localhost:16686 to access the Jaeger UI.

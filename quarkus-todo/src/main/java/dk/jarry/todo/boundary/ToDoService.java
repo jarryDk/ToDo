@@ -17,6 +17,9 @@ import javax.ws.rs.ext.Provider;
 
 import org.eclipse.microprofile.opentracing.Traced;
 
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
+
 import dk.jarry.todo.entity.ToDo;
 
 @Traced
@@ -25,6 +28,25 @@ public class ToDoService {
 	
 	@Inject
 	EntityManager entityManager;
+
+	@Inject
+    @Channel("todoCreate")
+    Emitter<ToDo> toDoCreateChannel;
+	
+	@Inject
+    @Channel("todoRead")
+    Emitter<ToDo> todoReadChannel;
+	
+	
+	@Inject
+    @Channel("todoUpdate")
+    Emitter<ToDo> todoUpdateChannel;
+	
+	
+	@Inject
+    @Channel("todoDelete")
+    Emitter<ToDo> todoDeleteChannel;
+	
 	
 	public ToDoService() {
 	}
@@ -41,6 +63,8 @@ public class ToDoService {
 		entityManager.persist(toDo);
 		entityManager.flush();
 		entityManager.refresh(toDo);
+
+		this.toDoCreateChannel.send(toDo);
 		
 		return toDo;
 	}
@@ -49,6 +73,7 @@ public class ToDoService {
 	public ToDo read(Object id) {
 		ToDo toDo = entityManager.find(ToDo.class, id);
 		if (toDo != null) {
+			this.todoReadChannel.send(toDo);
 			return toDo;
 		} else {
 			throw new WebApplicationException( //
@@ -58,14 +83,14 @@ public class ToDoService {
 	}
 
 	@Transactional
-	public ToDo update(Integer id, ToDo toDo) {
+	public ToDo update(Long id, ToDo toDo) {
 		
 		if(toDo.id == null) {
 			toDo.id = id;	
 		}	
 				
 		if (read(id) != null) {
-			
+			this.todoUpdateChannel.send(toDo);
 			return entityManager.merge(toDo);			
 			
 		} else {
@@ -81,6 +106,7 @@ public class ToDoService {
 		ToDo toDo = read(id);
 
 		if (toDo != null) {
+			this.todoDeleteChannel.send(toDo);
 			entityManager.remove(toDo);
 		} else {
 			throw new WebApplicationException( //

@@ -12,6 +12,8 @@ import javax.persistence.QueryHint;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
 /**
  * @author Michael Bornholdt Nielsen
  */
@@ -24,6 +26,7 @@ import javax.persistence.Table;
 @Cacheable
 public class ToDo {
 	
+	
 	@Id
 	@SequenceGenerator( //
 			name = "todosSequence", //
@@ -33,7 +36,8 @@ public class ToDo {
 	@GeneratedValue( //
 			strategy = GenerationType.SEQUENCE, //
 			generator = "todosSequence")
-	public Integer id;
+	@Schema(readOnly = true)
+	public Long id;
 
 	public String subject;
 	
