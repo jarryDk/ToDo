@@ -13,9 +13,27 @@ export class ToDoStore {
         }       
     }
 
-    getToDo(id){       
+    toDoMapSorted(){
+        return this.toDoMap;
+    }
+
+    create(id, toDo){       
+        return this.toDoMap.set(id + "" ,toDo);
+    }
+
+    read(id){       
         return this.toDoMap.get(id + "");
     }
+
+    update(id, toDo){       
+        return this.toDoMap.set(id + "" ,toDo);
+    }
+
+    delete(id){       
+        return this.toDoMap.delete(id + "");
+    }
+
+    
 
 }
 

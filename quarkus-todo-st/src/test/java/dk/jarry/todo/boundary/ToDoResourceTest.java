@@ -26,8 +26,8 @@ public class ToDoResourceTest {
     public void create() {
 
         JsonObjectBuilder createObjectBuilder = Json.createObjectBuilder();
-        createObjectBuilder.add("subject", "Subject - test");
-        createObjectBuilder.add("body", "Body - test");
+        createObjectBuilder.add("subject", "Subject - QuarkusTest");
+        createObjectBuilder.add("body", "Body - QuarkusTest - Create");
         JsonObject todoInput = createObjectBuilder.build();
         
         var todoOutput = this.resourceClient.create(todoInput);
