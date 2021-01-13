@@ -1,4 +1,3 @@
-import "./store.js";
 import { store } from "./store.js";
 
 class ToDosElement extends HTMLElement {
@@ -14,8 +13,8 @@ class ToDosElement extends HTMLElement {
     }
 
     async getToDos() {
-        let result = await this.todos;
-        store.todos = result;
+        let result = await this.todos;       
+        store.toDoStore.loadToDos(result);
         console.log("Store", store);
         this.view();
     }
@@ -31,28 +30,20 @@ class ToDosElement extends HTMLElement {
             .then(response => response.json());
     }
 
-    view() {
-        console.info("store.todos", store.todos);
-        for (let row of store.todos) { 
-            console.log(row);
-
-            this.root.appendChild(this.todo());
-        } 
-
-        this.innerHTML = `
-            <jarry-todo data-title="Hoo">ToDo</jarry-todo>            
-        `;
+    view() {        
+        let toDoMap = store.toDoStore.toDoMap;
+        for (let [key, value] of toDoMap) {
+            console.log(value);
+            this.root.appendChild(this.todoElement(key));
+        }        
     }
 
-    todo(){
-        if (!ToDosElement.template) {
-        const temp = document.createElement('template');
-        temp.innerHTML = `
-        <jarry-todo data-title="Hoo">TITLE</jarry-todo>            
-        `;
-        ToDosElement.template = temp;    
-        }    
-        return ToDosElement.template.content.cloneNode("true");
+    todoElement(id){
+        const template = document.createElement('template');
+        template.innerHTML = `
+        <jarry-todo id="${id}"></jarry-todo>            
+        `;        
+        return template.content.cloneNode("true");
     }
 
 };
@@ -68,37 +59,45 @@ class ToDoElement extends HTMLElement {
     connectedCallback() {
         console.log("connected - ToDo");
 
-        this.root.appendChild(this.template());
-        console.log(this);
+        this.todo = store.toDoStore.getToDo(this.id);
+        console.log("todo : ", this.todo);
+
+        this.root.appendChild(this.template());        
+        
+        this.view();
+       
+    }
+
+    view() { 
         const title = this.root.querySelector("[data-title]");
-        title.innerText = "Hej";
-    }
+        title.innerText = this.todo.subject;
 
-    header() {
-        const template = document.createElement('template');
-        template.innerHTML = `
-        <slot name="header">B</slot>
-        `;
-        return template.content.cloneNode(true);
+        const content = this.root.querySelector("[data]");
+        if(this.todo.body !== undefined){                   
+            content.innerText = this.todo.body;
+        } else{
+            content.innerText ="...";
+        }
     }
-
-    footer() {
-        const template = document.createElement('template');
-        template.innerHTML = `
-        <slot name="footer">E</slot>
-        `;
-        return template.content.cloneNode(true);
-    }
-
+    
     template() {
         if (!ToDoElement.cachedTemplate) {
             const templateElement = document.createElement("template");
             templateElement.innerHTML = `
+            <style>
+            :host{
+                contain: content;
+                display:block;
+                border: 2px solid lightblue;
+                padding: 0.5em;
+                margin: 1em;
+            }
+            </style>
             <article>
                 <header>
                     <slot name="title" data-title>t</title>
                 </header>
-                <slot name="content">c</title>
+                <slot name="content" data>c</title>
             </article>
             `;
             ToDoElement.cachedTemplate = templateElement.content;
