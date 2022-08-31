@@ -2,8 +2,10 @@ package dk.jarry.todo.boundary;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.time.ZonedDateTime;
 // import java.security.Principal;
 import java.util.List;
+import java.util.UUID;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -16,7 +18,6 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 import org.eclipse.microprofile.opentracing.Traced;
-
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 
@@ -25,99 +26,92 @@ import dk.jarry.todo.entity.ToDo;
 @Traced
 @RequestScoped
 public class ToDoService {
-	
+
 	@Inject
 	EntityManager entityManager;
 
 	@Inject
-    @Channel("todoCreate")
-    Emitter<ToDo> toDoCreateChannel;
-	
+	@Channel("todoCreate")
+	Emitter<ToDo> toDoCreateChannel;
+
 	@Inject
-    @Channel("todoRead")
-    Emitter<ToDo> todoReadChannel;
-	
-	
+	@Channel("todoRead")
+	Emitter<ToDo> todoReadChannel;
+
 	@Inject
-    @Channel("todoUpdate")
-    Emitter<ToDo> todoUpdateChannel;
-	
-	
+	@Channel("todoUpdate")
+	Emitter<ToDo> todoUpdateChannel;
+
 	@Inject
-    @Channel("todoDelete")
-    Emitter<ToDo> todoDeleteChannel;
-	
-	
+	@Channel("todoDelete")
+	Emitter<ToDo> todoDeleteChannel;
+
 	public ToDoService() {
 	}
 
 	@Transactional
 	public ToDo create(ToDo toDo) {
-		
-		if (toDo.id != null) {
+		if (toDo.uuid != null) {
 			throw new WebApplicationException( //
 					"ToDo not valid.", //
 					Response.Status.BAD_REQUEST);
 		}
-	
+		toDo.createdDate = ZonedDateTime.now();
+
 		entityManager.persist(toDo);
 		entityManager.flush();
 		entityManager.refresh(toDo);
 
 		this.toDoCreateChannel.send(toDo);
-		
+
 		return toDo;
 	}
 
 	@Transactional
-	public ToDo read(Object id) {
-		ToDo toDo = entityManager.find(ToDo.class, id);
+	public ToDo read(UUID uuid) {
+		ToDo toDo = entityManager.find(ToDo.class, uuid);
 		if (toDo != null) {
 			this.todoReadChannel.send(toDo);
 			return toDo;
 		} else {
 			throw new WebApplicationException( //
-					"ToDo with id of " + id + " does not exist.", //
+					"ToDo with uuid of " + uuid + " does not exist.", //
 					Response.Status.NOT_FOUND);
 		}
 	}
 
 	@Transactional
-	public ToDo update(Long id, ToDo toDo) {
-		
-		if(toDo.id == null) {
-			toDo.id = id;	
-		}	
-				
-		if (read(id) != null) {
+	public ToDo update(UUID uuid, ToDo toDo) {
+		ToDo findToDo = entityManager.find(ToDo.class, uuid);
+		if (findToDo != null) {
+			toDo.updatedDate = ZonedDateTime.now();
 			this.todoUpdateChannel.send(toDo);
-			return entityManager.merge(toDo);			
-			
+			return entityManager.merge(toDo);
 		} else {
 			throw new WebApplicationException( //
-					"ToDo with id of " + id + " does not exist.", //
+					"ToDo with uuid of " + uuid + " does not exist.", //
 					Response.Status.NOT_FOUND);
 		}
 	}
 
 	@Transactional
-	public void delete(Object id) {
-
-		ToDo toDo = read(id);
-
-		if (toDo != null) {
-			this.todoDeleteChannel.send(toDo);
-			entityManager.remove(toDo);
+	public void delete(UUID uuid) {
+		ToDo findToDo = entityManager.find(ToDo.class, uuid);
+		if (findToDo != null) {
+			this.todoDeleteChannel.send(findToDo);
+			entityManager.remove(findToDo);
 		} else {
 			throw new WebApplicationException( //
-					"ToDo with id of " + id + " does not exist.", //
+					"ToDo with uuid of " + uuid + " does not exist.", //
 					Response.Status.NOT_FOUND);
 		}
 	}
 
 	@Transactional
 	public List<ToDo> list(Long from, Long limit) {
-		return entityManager.createNamedQuery("ToDos.findAll", ToDo.class).getResultList();
+		return entityManager
+				.createNamedQuery("ToDos.findAll", ToDo.class)
+				.getResultList();
 	}
 
 	@Provider
@@ -130,7 +124,7 @@ public class ToDoService {
 				code = ((WebApplicationException) exception).getResponse().getStatus();
 			}
 			return Response.status(code).entity(Json.createObjectBuilder() //
-					.add("error", (exception.getMessage() != null ? exception.getMessage() :"")) //
+					.add("error", (exception.getMessage() != null ? exception.getMessage() : "")) //
 					.add("stackTrace", stackTrace(exception)) //
 					.add("code", code).build()).build();
 		}

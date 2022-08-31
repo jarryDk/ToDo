@@ -4,8 +4,8 @@ Michael Bornholdt Nielsen michaelbornholdtnielsen@gmail.com
 
 == Requirements
 
-- Java 11
-- Graalvm 20.2.0
+- Java 17
+- Graalvm 22.2.0
 - Postgres
 
 == MicroProfile
@@ -15,7 +15,7 @@ Michael Bornholdt Nielsen michaelbornholdtnielsen@gmail.com
 [source,bash]
 ----
 curl -X GET \
-	http://localhost:8080/health \
+	http://localhost:8080/q/health \
 	-H 'Accept: application/json'
 ----
 
@@ -24,19 +24,19 @@ curl -X GET \
 [source,bash]
 ----
 curl -X GET \
-	http://localhost:8080/metrics/application \
-	-H 'Accept: application/json' 
+	http://localhost:8080/q/metrics/application \
+	-H 'Accept: application/json'
 ----
 
 === MicroProfile OpenAPI and SwaggerUI
 
-- http://localhost:8080/openapi[OpenAPI]
-- http://localhost:8080/swagger-ui[swagger-ui]
+- http://localhost:8080/q/openapi[OpenAPI]
+- http://localhost:8080/q/swagger-ui[swagger-ui]
 
 [source,bash]
 ----
 curl -X GET \
-	http://localhost:8080/openapi \
+	http://localhost:8080/q/openapi \
 	-H 'Accept: application/json'
 ----
 
@@ -50,150 +50,145 @@ https://quarkus.io/guides/opentracing[quarkus.io - Using OpenTracing]
 
 [source,bash]
 ----
-docker network inspect demo-net
+podman network inspect demo-net
 ----
 
 [source,bash]
 ----
-docker network create demo-net
+podman network create demo-net
 ----
 
-== Kubernetes work
 
+== Quarkus-todo
+
+
+.Start in dev mode
 [source,bash]
 ----
-kubectl get all
+cd quarkus-todo
+./mvn compile quarkus:dev
 ----
 
+.Build jvm mode
 [source,bash]
 ----
-kubectl delete deployment.apps/quarkus-todo
+cd quarkus-todo
+./mvn clean package
 ----
 
-== Minikube work
-
-https://kubernetes.io/docs/setup/learning-environment/minikube/
-
-`We need to set the environment variables with`
-[source,bash]
-----
-eval $(minikube docker-env)
-----
-
-`We can unset the environment variables with this command`
-[source,bash]
-----
-eval $(minikube docker-env -u)
-----
-
-[source,bash]
-----
-minikube dashboard --url
-minikube service pgadmin --url
-minikube service postgresqldemo --url
-minikube service quarkus-todo-service --url
-----
-
-[source,bash]
-----
-minikube start \
-	-p micbn \
-	--cpus 2 \
-	--memory 2048 \
-	--disk-size 10g \
-	--vm-driver=kvm2
-----
-
-[source,bash]
-----
-minikube dashboard --url -p micbn 
-----
-
-[source,bash]
-----
-minikube stop -p micbn 
-----
-
-[source,bash]
-----
-minikube delete -p micbn
-----
-
-== Start ToDo
-
+.Build native mode
 [source,bash]
 ----
 cd quarkus-todo
 ./mvnw package -Pnative
 ----
 
+.Build jvm mode + create images
 [source,bash]
 ----
 cd quarkus-todo
-docker build \
+./mvn clean package
+podman build \
 	-f src/main/docker/Dockerfile.native \
-	-t quarkus-todo .
+	-t quarkus/jvm/quarkus-todo .
 ----
 
+.Push jvm mode to Registry
 [source,bash]
 ----
-docker run -i --rm \
+podman run -it --rm=true \
 	--name quarkus-todo \
 	--network demo-net \
-	-p 8080:8080 quarkus-todo
-----
-
-[source,bash]
-----
-kubectl run quarkus-todo \
-	--port=8080 \
-	--image=quarkus-todo:latest \
-	--image-pull-policy=IfNotPresent
-
-kubectl expose deployment quarkus-todo --type=LoadBalancer	--name=quarkus-todo-service
+	-p 8080:8080 quarkus/jvm/quarkus-todo
 ----
 
 == Start Postgres
 
 [source,bash]
 ----
-docker run --ulimit memlock=-1:-1 \
-	-it --rm=true --memory-swappiness=0 \
-	--name PostgreSQLDemo \
-	--network demo-net \
-	-e POSTGRES_USER=hibernate \
-	-e POSTGRES_PASSWORD=hibernate \
-	-e POSTGRES_DB=hibernate_db \
-	-p 5432:5432 \
-	postgres:13.1
+podman run -it --rm=true \
+  --name PostgresQuarkusWorkshop \
+  -e POSTGRES_USER=hibernate \
+  -e POSTGRES_PASSWORD=hibernate \
+  -e POSTGRES_DB=hibernate_db \
+  -p 5432:5432 \
+  postgres:14.5
 ----
+
+== Jaeger
 
 [source,bash]
 ----
-kubectl run postgresqldemo \
-	--image=postgres:12.2 \
-	--port=5432 \
-	--env=POSTGRES_USER=hibernate \
-	--env=POSTGRES_PASSWORD=hibernate \
-	--env=POSTGRES_DB=hibernate_db \
-	--image-pull-policy=IfNotPresent
-
-kubectl expose deployment postgresqldemo --type=NodePort
-----
-
-
-== Start Jaeger
-
-[source,bash]
-----
-docker run  -it --rm=true \
-  -p 5775:5775/udp \
-  -p 6831:6831/udp \
-  -p 6832:6832/udp \
-  -p 5778:5778 \
-  -p 16686:16686 \
-  -p 14268:14268 \
-  jaegertracing/all-in-one:1.21
+podman run -it --rm=true \
+	--name jaeger \
+	-p 5775:5775/udp \
+	-p 6831:6831/udp \
+	-p 6832:6832/udp \
+	-p 5778:5778 \
+	-p 14268:14268 \
+	-p 16686:16686 \
+	jaegertracing/all-in-one:1.37
 ----
 
 You can then navigate to http://localhost:16686 to access the Jaeger UI.
+
+== Prometheus
+
+[source,bash]
+----
+podman run -it --rm=true \
+	--privileged \
+	--name prometheus \
+	-p 9090:9090 \
+	-v ./prometheus.yml:/etc/prometheus/prometheus.yml \
+	prom/prometheus --config.file=/etc/prometheus/prometheus.yml
+----
+
+You can then navigate to http://localhost:9090 to access the Prometheus UI.
+
+
+== Grafana
+
+[source,bash]
+----
+podman run -it --rm=true \
+	--name grafana \
+	-p 3000:3000 grafana/grafana
+----
+
+The Grafana is accessible from http://localhost:3000/
+
+
+
+== Testing with curl
+
+=== Create ToDo
+
+[source,bash]
+----
+curl -X POST http://localhost:8080/todos \
+	-H 'Accept: application/json' \
+	-H 'Content-Type: application/json' \
+	-d '{"subject":"Hello from Quarkus","body":"Content"}'
+----
+
+[source,bash]
+----
+./create_todo.sh http://localhost:8080/todos
+----
+
+=== Read a ToDo
+
+[source,bash]
+----
+curl http://localhost:8080/todos/<UUID>
+----
+
+[source,bash]
+----
+./read_todo.sh http://localhost:8080/todos <UUID>
+----
+
+== Link
+
+- https://exceptionly.com/2022/01/18/monitoring-quarkus-with-prometheus-and-grafana/

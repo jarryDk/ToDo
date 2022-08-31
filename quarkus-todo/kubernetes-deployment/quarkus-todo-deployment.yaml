@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quarkus-todo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quarkus-todo
+  template:
+    metadata:
+      labels:
+        app: quarkus-todo
+    spec:
+      containers:
+        - name: quarkus-todo
+          image: 10.105.98.183/quarkus/jvm/quarkus-todo:1.0.0
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: quarkus-todo-config
+          env:
+          - name: quarkus.datasource.username
+            valueFrom:
+              secretKeyRef:
+                name: quarkus-todo-secret
+                key: quarkus.datasource.username
+          - name: quarkus.datasource.password
+            valueFrom:
+              secretKeyRef:
+                name: quarkus-todo-secret
+                key: quarkus.datasource.password

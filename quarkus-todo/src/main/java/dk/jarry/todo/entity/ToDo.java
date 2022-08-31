@@ -1,18 +1,19 @@
 package dk.jarry.todo.entity;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.persistence.Cacheable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import javax.persistence.QueryHint;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.hibernate.annotations.GenericGenerator;
 
 /**
  * @author Michael Bornholdt Nielsen
@@ -25,36 +26,29 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 		hints = @QueryHint(name = "org.hibernate.cacheable", value = "true"))
 @Cacheable
 public class ToDo {
-	
-	
+
 	@Id
-	@SequenceGenerator( //
-			name = "todosSequence", //
-			sequenceName = "todos_id_seq", //
-			allocationSize = 1, //
-			initialValue = 10)
-	@GeneratedValue( //
-			strategy = GenerationType.SEQUENCE, //
-			generator = "todosSequence")
-	@Schema(readOnly = true)
-	public Long id;
+	@GeneratedValue(generator = "UUID")
+	@GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+	@Column(name = "uuid", updatable = false, nullable = false)
+	public UUID uuid;
 
 	public String subject;
-	
+
 	public String body;
 
-	public Date createdDate;
-	public Date updatedDate;
+	public ZonedDateTime createdDate;
+	public ZonedDateTime updatedDate;
 
-	public Date startDate;
-	public Date endDate;
+	public ZonedDateTime startDate;
+	public ZonedDateTime endDate;
 
 	public Integer priority;
 	public Integer importens;
 
 	public String owner;
-	
+
 	public String createBy;
 	public String updatedBy;
-	
+
 }

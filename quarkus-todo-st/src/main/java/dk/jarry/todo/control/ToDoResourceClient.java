@@ -1,5 +1,7 @@
 package dk.jarry.todo.control;
 
+import java.util.UUID;
+
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.ws.rs.DELETE;
@@ -17,25 +19,25 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 @Path("todos")
 @RegisterRestClient(baseUri = "http://localhost:8080")
 public interface ToDoResourceClient {
-    
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    JsonObject create(JsonObject toDo);
-    
-    @GET
-	@Path("{id}")
-	JsonObject read(@PathParam("id") Integer id);
+
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	JsonObject create(JsonObject toDo);
+
+	@GET
+	@Path("{uuid}")
+	JsonObject read(@PathParam("uuid") UUID uuid);
 
 	@PUT
-	@Path("{id}")
-	JsonObject update(@PathParam("id") Integer id, JsonObject toDo);
+	@Path("{uuid}")
+	JsonObject update(@PathParam("uuid") UUID uuid, JsonObject toDo);
 
 	@DELETE
-	@Path("{id}")	
-	public void delete(@PathParam("id") Integer id);
+	@Path("{uuid}")
+	public void delete(@PathParam("uuid") UUID uuid);
 
 	@GET
 	public JsonArray list( //
-		@QueryParam("from") Integer from, //
-		@QueryParam("limit") Integer limit) ;
+			@QueryParam("from") Integer from, //
+			@QueryParam("limit") Integer limit);
 }

@@ -1,6 +1,7 @@
 package dk.jarry.todo.boundary;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -16,55 +17,61 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import org.eclipse.microprofile.metrics.MetricUnits;
-import org.eclipse.microprofile.metrics.annotation.Counted;
-import org.eclipse.microprofile.metrics.annotation.Timed;
-
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import dk.jarry.todo.entity.ToDo;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 
 @Path("todos")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "Todo Resource", description = "All Todo Operations")
 public class ToDoResource {
-	
+
 	@Inject
 	ToDoService toDoService;
-	
+
+	private final MeterRegistry registry;
+
+	ToDoResource(MeterRegistry registry) {
+		this.registry = registry;
+	}
+
 	@POST
 	@RolesAllowed("user")
-	@Counted(name = "createPerformed", description = "How many create have been performed.")
-	@Timed(name = "createTimer", description = "A measure of how long it takes to perform the primality test.", unit = MetricUnits.MILLISECONDS)
 	@Operation(description = "Create a new todo")
 	public ToDo create(ToDo toDo) {
-		return toDoService.create(toDo);
+		registry.counter("createPerformed", "type", "natural")
+			.increment();
+		Timer timer = registry.timer("createTimer");
+		return timer.record(
+				() -> toDoService.create(toDo));
 	}
 
 	@GET
-	@Path("{id}")
+	@Path("{uuid}")
 	@PermitAll
 	@Operation(description = "Get a specific todo by id")
-	public ToDo read(@PathParam("id") Long id) {
-		return toDoService.read(id);
+	public ToDo read(@PathParam("uuid") UUID uuid) {
+		return toDoService.read(uuid);
 	}
 
 	@PUT
-	@Path("{id}")
-	@RolesAllowed("user")	
+	@Path("{uuid}")
+	@RolesAllowed("user")
 	@Operation(description = "Update an exiting todo")
-	public ToDo update(@PathParam("id") Long id, ToDo toDo) {
-		return toDoService.update(id, toDo);
+	public ToDo update(@PathParam("uuid") UUID uuid, ToDo toDo) {
+		return toDoService.update(uuid, toDo);
 	}
 
 	@DELETE
-	@Path("{id}")
+	@Path("{uuid}")
 	@PermitAll
 	@Operation(description = "Delete a specific todo")
-	public void delete(@PathParam("id") Long id) {
-		toDoService.delete(id);
+	public void delete(@PathParam("uuid") UUID uuid) {
+		toDoService.delete(uuid);
 	}
 
 	@GET

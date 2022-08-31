@@ -1,0 +1,32 @@
+= quarkus-todo
+
+[source,bash]
+----
+mvn io.quarkus.platform:quarkus-maven-plugin:2.11.3.Final:create \
+    -DprojectGroupId=dk.jarry \
+    -DprojectArtifactId=quarkus-todo \
+    -DclassName="dk.jarry.todo.ToDoResource" \
+    -Dpath="/todos"
+----
+
+.Build images
+[source,bash]
+----
+podman build \
+    -f src/main/docker/Dockerfile.jvm \
+    -t localhost:5000/quarkus/jvm/quarkus-todo .
+----
+
+.Push images to registry
+[source,bash]
+----
+podman push localhost:5000/quarkus/jvm/quarkus-todo
+----
+
+.Deply to Kubernetes
+[source,bash]
+----
+cd kubernetes-deployment
+./quarkus-todo-deploy.sh
+----
+
