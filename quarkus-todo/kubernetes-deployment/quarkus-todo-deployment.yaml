@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: quarkus-todo
-          image: jarrydk/quarkus-jvm-todo:1.0.2
+          image: jarrydk/quarkus-jvm-todo:1.0.3
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 8080
