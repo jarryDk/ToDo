@@ -1,7 +1,6 @@
 package dk.jarry.todo.entity;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 import javax.persistence.Cacheable;
@@ -13,6 +12,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.QueryHint;
 import javax.persistence.Table;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.hibernate.annotations.GenericGenerator;
 
 /**
@@ -31,6 +31,7 @@ public class ToDo {
 	@GeneratedValue(generator = "UUID")
 	@GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
 	@Column(name = "uuid", updatable = false, nullable = false)
+	@Schema(readOnly = true)
 	public UUID uuid;
 
 	public String subject;

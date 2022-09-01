@@ -107,7 +107,7 @@ podman run -it --rm=true \
 [source,bash]
 ----
 podman run -it --rm=true \
-  --name PostgresQuarkusWorkshop \
+  --name postgres \
   -e POSTGRES_USER=hibernate \
   -e POSTGRES_PASSWORD=hibernate \
   -e POSTGRES_DB=hibernate_db \

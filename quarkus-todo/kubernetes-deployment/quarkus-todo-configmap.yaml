@@ -5,4 +5,4 @@ metadata:
   labels:
     app: quarkus-todo
 data:
-  quarkus.datasource.jdbc.url: jdbc:postgresql://PostgreSQLDemo:5432/hibernate_db
+  quarkus.datasource.jdbc.url: jdbc:postgresql://postgres:5432/hibernate_db

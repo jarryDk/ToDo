@@ -14,13 +14,20 @@ mvn io.quarkus.platform:quarkus-maven-plugin:2.11.3.Final:create \
 ----
 podman build \
     -f src/main/docker/Dockerfile.jvm \
-    -t localhost:5000/quarkus/jvm/quarkus-todo .
+    -t docker.io/jarrydk/quarkus-jvm-todo .
 ----
+
+.Login to dockerhub
+[source,bash]
+----
+podman login
+----
+
 
 .Push images to registry
 [source,bash]
 ----
-podman push localhost:5000/quarkus/jvm/quarkus-todo
+podman push docker.io/jarrydk/quarkus-jvm-todo
 ----
 
 .Deply to Kubernetes

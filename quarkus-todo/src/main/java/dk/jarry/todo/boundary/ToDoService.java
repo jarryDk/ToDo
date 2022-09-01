@@ -125,7 +125,7 @@ public class ToDoService {
 			}
 			return Response.status(code).entity(Json.createObjectBuilder() //
 					.add("error", (exception.getMessage() != null ? exception.getMessage() : "")) //
-					.add("stackTrace", stackTrace(exception)) //
+					// .add("stackTrace", stackTrace(exception)) //
 					.add("code", code).build()).build();
 		}
 

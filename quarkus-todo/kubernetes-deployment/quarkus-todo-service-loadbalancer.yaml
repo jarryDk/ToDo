@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: quarkus-todo-svc
+  labels:
+    app: quarkus-todo
+spec:
+  selector:
+   app: quarkus-todo
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8080
