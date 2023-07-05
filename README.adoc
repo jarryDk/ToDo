@@ -106,13 +106,14 @@ podman run -it --rm=true \
 
 [source,bash]
 ----
-podman run -it --rm=true \
-  --name postgres \
+podman run -d \
+  --rm=true \
+  --name postgres-quarkus-todo \
   -e POSTGRES_USER=hibernate \
   -e POSTGRES_PASSWORD=hibernate \
   -e POSTGRES_DB=hibernate_db \
-  -p 5432:5432 \
-  postgres:14.5
+  -p 5732:5432 \
+  postgres:15
 ----
 
 == Jaeger
@@ -127,7 +128,7 @@ podman run -it --rm=true \
 	-p 5778:5778 \
 	-p 14268:14268 \
 	-p 16686:16686 \
-	jaegertracing/all-in-one:1.37
+	jaegertracing/all-in-one:1.46
 ----
 
 You can then navigate to http://localhost:16686 to access the Jaeger UI.

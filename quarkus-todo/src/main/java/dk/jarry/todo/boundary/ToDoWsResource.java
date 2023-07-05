@@ -4,22 +4,24 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
-
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 
 import dk.jarry.todo.entity.ToDo;
+import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.ServerEndpoint;
 
 @ServerEndpoint("/ws/todos")
 @ApplicationScoped
@@ -73,22 +75,23 @@ public class ToDoWsResource {
         broadcast(toDo, WsActions.DELETE);
     }
 
-    public void broadcast(ToDo toDo, WsActions action) {
+    void broadcast(ToDo toDo, WsActions action) {
 
         Jsonb jsonb = JsonbBuilder.create();
         String jsonString = jsonb.toJson(toDo);
 
         JsonObject toDoAsJson = Json.createReader(new StringReader(jsonString)).readObject();
 
-        JsonObjectBuilder createObjectBuilder = Json.createObjectBuilder();
+        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
 
-        createObjectBuilder.add("toDo", toDoAsJson);
-        createObjectBuilder.add("action", action.name());
+        objectBuilder.add("toDo", toDoAsJson);
+        objectBuilder.add("action", action.name());
 
-        broadcast(createObjectBuilder.build().toString());
+        broadcast(objectBuilder.build().toString());
     }
 
-    public void broadcast(String message) {
+    void broadcast(String message) {
+
         sessions.forEach(s -> {
             s.getAsyncRemote().sendObject(message, result -> {
                 if (result.getException() != null) {

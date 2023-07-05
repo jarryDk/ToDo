@@ -1,47 +1,109 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 
 <html>
 
 <head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>ToDos</title>
 
-   <script type="text/javascript">
-      function WebSocketTest() {
+   <link href="bootstrap-5.3.0-dist/css/bootstrap.min.css" rel="stylesheet">
+   <script src="bootstrap-5.3.0-dist/js/bootstrap.bundle.min.js" ></script>
 
-         if ("WebSocket" in window) {
-            console.info("WebSocket is supported by your Browser!");
-
-            // Let us open a web socket
-            var ws = new WebSocket("ws://localhost:8080/ws/todos");
-
-            ws.onopen = function () {
-               // Web Socket is connected, send data using send()
-               ws.send("Message to send");
-               console.info("Message is sent...");
-            };
-
-            ws.onmessage = function (evt) {
-               var received_msg = evt.data;
-               console.info("Message is received... " + received_msg);
-            };
-
-            ws.onclose = function () {
-               // websocket is closed.
-               console.info("Connection is closed...");
-            };
-         } else {
-
-            // The browser doesn't support WebSocket
-            console.info("WebSocket NOT supported by your Browser!");
-         }
-      }
-   </script>
-
+   <script src="lib/keycloak.min.js"></script>
 </head>
 
 <body>
-   <div id="sse">
-      <a href="javascript:WebSocketTest()">Run WebSocket</a>
-   </div>
+
+<main>
+
+    <section class="py-3 text-center container">
+        <div class="row">
+            <div class="col-md-auto">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">User:</span>
+                    </div>
+                    <input type="text" class="form-control-cust" placeholder="Username" id="user" readonly>
+                </div>
+            </div>
+            <div class="col">
+                <div id="not-authenticated" style="display: none">
+                    <button class="btn btn-primary rounded-pill px-3" onclick="keycloak.login()">Login</button>
+                </div>
+                <div id="authenticated" style="display: none" class="gap-2">
+                    <button class="btn btn-primary rounded-pill px-3" onclick="keycloak.logout()">Logout</button>
+                    <button class="btn btn-primary rounded-pill px-3" onclick="keycloak.accountManagement()">Account</button>
+                </div>
+            </div>
+            <div class="col-md-auto">
+                <form action="" id="scopeForm">
+                    <div class="form-group">
+                        <input type="text" class="form-control-cust" id="inputScope" placeholder="Scope" value="openid email profile phone rl">
+                        <button type="submit" class="btn btn-primary mb-2">Update scope</button>
+                    </div>
+                </form>
+            </div>
+             <div class="col-md-auto">
+                <div class="gap-2">
+                    <button class="btn btn-success rounded-pill px-3" onclick="webSocketTest()">Get ToDos via WebSocket</button>
+                    <button class="btn btn-success rounded-pill px-3" onclick="request('')">Get ToDos via REST</button>
+                    <button class="btn btn-success rounded-pill px-3" onclick="request('/563b0b6f-0537-4cfe-a891-df2070a18405')">Get ToDo via REST</button>
+            </div>
+         </div>
+      </div>
+   </section>
+
+   <div class="album py-1 bg-body-tertiary">
+      <div class="container-fluid">
+         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-md-4 row-cols-md-5 g-2">
+               <div class="col">
+                  <div class="card shadow-sm">
+                     <div class="card-header">ID Token HR</div>
+                     <div class="card-body">
+                           <div id="idToken"></div>
+                     </div>
+                  </div>
+               </div>
+               <div class="col">
+                  <div class="card shadow-sm">
+                     <div class="card-header">ID Token</div>
+                     <div class="card-body">
+                           <div id="idTokenBase64"></div>
+                     </div>
+                  </div>
+               </div>
+               <div class="col">
+                  <div class="card shadow-sm">
+                     <div class="card-header">Token HR</div>
+                     <div class="card-body">
+                           <div id="token"></div>
+                     </div>
+                  </div>
+               </div>
+               <div class="col">
+                  <div class="card shadow-sm">
+                     <div class="card-header">Token</div>
+                     <div class="card-body">
+                           <div id="tokenBase64"></div>
+                     </div>
+                  </div>
+               </div>
+               <div class="col">
+                  <div class="card shadow-sm bg-light" id="payloadCard">
+                     <div class="card-header">Payload</div>
+                     <div class="card-body">
+                           <div id="payload"></div>
+                     </div>
+                  </div>
+               </div>
+         </div>
+      </div><!-- // .container-fluid -->
+   </div><!-- // .album py-5 bg-body-tertiary -->
+
+</main>
+
+<script src="app.js"></script>
 
 </body>
 

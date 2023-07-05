@@ -2,7 +2,7 @@
 
 [source,bash]
 ----
-mvn io.quarkus.platform:quarkus-maven-plugin:2.11.3.Final:create \
+mvn io.quarkus.platform:quarkus-maven-plugin:3.1.2.Final:create \
     -DprojectGroupId=dk.jarry \
     -DprojectArtifactId=quarkus-todo \
     -DclassName="dk.jarry.todo.ToDoResource" \
@@ -36,4 +36,9 @@ podman push docker.io/jarrydk/quarkus-jvm-todo
 cd kubernetes-deployment
 ./quarkus-todo-deploy.sh
 ----
+
+== Links for WebSocket authentication
+
+- https://stackoverflow.com/questions/46998781/web-socket-connection-with-basic-access-authentication#47307415[Web Socket connection with Basic Access Authentication]
+- https://github.com/websockets/ws[ws: a Node.js WebSocket library]
 
