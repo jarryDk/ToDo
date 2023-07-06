@@ -4,15 +4,21 @@ var keycloak = new Keycloak({
     "clientId": "todo-playground-service"
 });
 
+var restServiceUrl = 'https://todo.jarry.dk:8443/todos';
+
 var requestedScopes = "openid email profile phone";
 
+var jarryTodos = document.querySelector("jarry-todos");
+
 function notAuthenticated() {
+    jarryTodos.dispatchEvent(new Event("keycloak-not-authenticated"));
     document.getElementById('not-authenticated').style.display = 'block';
     document.getElementById('authenticated').style.display = 'none';
 }
 keycloak.onAuthLogout = notAuthenticated;
 
 function authenticated() {
+    jarryTodos.dispatchEvent(new Event("keycloak-authenticated"));
     document.getElementById('not-authenticated').style.display = 'none';
     document.getElementById('authenticated').style.display = 'block';
     document.getElementById('user').value = keycloak.tokenParsed['preferred_username'];
@@ -21,8 +27,8 @@ function authenticated() {
 
 function updateTokensDisplay(){
     if (keycloak.authenticated) {
-        var idTokenObject = JSON.stringify(parseJwt(keycloak.idToken), null, 4);
-        var tokenObject = JSON.stringify(parseJwt(keycloak.token), null, 4);
+        let idTokenObject = prettyStringJwt(keycloak.idToken);
+        let tokenObject = prettyStringJwt(keycloak.token);
 
         document.getElementById('idToken').innerHTML =  '<pre class="preJsonTxt">' +idTokenObject + '</pre>';
         document.getElementById('idTokenBase64').innerHTML = '<code>' + keycloak.idToken + '</code>';
@@ -74,10 +80,14 @@ window.onload = function () {
     initKeycloak();
 }
 
+function prettyStringJwt(token){
+    return JSON.stringify(parseJwt(token), null, 4);
+}
+
 function parseJwt(token) {
-    var base64Url = token.split('.')[1];
-    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+    let base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
     return JSON.parse(jsonPayload);
@@ -106,13 +116,10 @@ function getCookie(cname) {
     return "";
 }
 
-var restServiceUrl = 'https://todo.jarry.dk:8443/todos';
-console.debug('restServiceUrl', restServiceUrl);
-
 function request(endpoint) {
-    var req = function() {
-        var req = new XMLHttpRequest();
-        var payload = document.getElementById('payload');
+    let req = function() {
+        let req = new XMLHttpRequest();
+        let payload = document.getElementById('payload');
         req.open('GET', restServiceUrl + endpoint , true);
 
         if (keycloak.authenticated) {
@@ -122,7 +129,7 @@ function request(endpoint) {
         req.onreadystatechange = function () {
             if (req.readyState == 4) {
                 if (req.status == 200) {
-                    var payloadObject = JSON.stringify(JSON.parse(req.responseText+""), null, 4);
+                    let payloadObject = JSON.stringify(JSON.parse(req.responseText+""), null, 4);
                     payload.innerHTML = '<pre class="preJsonTxt">' + payloadObject + '</pre>';
                 } else if (req.status == 0) {
                     payload.innerHTML = '<span class="error">Request failed</span>';

@@ -5,22 +5,33 @@ class ToDosElement extends HTMLElement {
     constructor() {
         super();
         this.root = this.attachShadow({mode: 'open'});
-        
+
         this.store = new storage.Store('todos');
         this.loadToDos = this.loadToDos.bind(this);
-        this.populatePosts = this.populatePosts.bind(this);
+        this.populateToDos = this.populateToDos.bind(this);
 
-        this.toDoUpdate = document.querySelector('#update');
-        this.toDoPopuulate = document.querySelector('#populate');
+        this.addEventListener(
+            "keycloak-authenticated",
+            (e) => {
+                console.info("User have been authenticated");
+                this.loadToDos();
+            },
+            false
+        );
 
-        this.init();
+        this.addEventListener(
+            "keycloak-not-authenticated",
+            (e) => {
+                console.info("User is not authenticated");
+                this.store.store([]);
+            },
+            false
+        );
+
     }
 
     connectedCallback() {
         console.debug("connected - ToDos");
-        customElements
-            .whenDefined('jarry-todo')
-            .then(_ => this.populatePosts());
     }
 
     get todos() {
@@ -30,6 +41,7 @@ class ToDosElement extends HTMLElement {
     }
 
     async fetchFromServer() {
+        console.debug('restServiceUrl', restServiceUrl);
         return await fetch(restServiceUrl, {
             headers: {
                 'Authorization': 'Bearer ' + keycloak.token
@@ -37,17 +49,12 @@ class ToDosElement extends HTMLElement {
         }).then(response => response.json());
     }
 
-    init() {
-        this.store.store([]);
-        this.toDoUpdate.onclick = this.loadToDos;
-        this.toDoPopuulate.onclick = this.populatePosts;
-    }
-
     loadToDos() {
         console.debug('loadToDos');
 
         let storeTodos = function(result){
             this.store.store(result);
+            this.populateToDos();
         }
         storeTodos = storeTodos.bind(this);
 
@@ -69,11 +76,14 @@ class ToDosElement extends HTMLElement {
         }
     }
 
-    populatePosts() {
+    populateToDos() {
 
         console.debug('populatePosts');
 
         let result = this.store.load();
+
+        console.debug('populatePosts - result', result);
+
         const todo = this.querySelector("jarry-todo");
 
         if( Array.isArray(result) ){

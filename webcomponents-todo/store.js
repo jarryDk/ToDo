@@ -14,5 +14,5 @@ export class Store {
         const stringified = this.storage.getItem(this.slot);
         return JSON.parse(stringified);
     }
-    
+
 }
